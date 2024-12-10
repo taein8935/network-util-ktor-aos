@@ -1,31 +1,5 @@
 package com.tikim.networkutilktor.core.domain
 
-import com.tikim.networkutilktor.Animal
-import com.tikim.networkutilktor.animal.mappers.toAnimalDto
-
-
-data class AnimalDto(val id: String)
-
-
-fun fetchAnimal(result: ApiResult<Animal, ApiError.Remote>) {
-
-    val stringList = (1..1000).map {
-        it.toString()
-    }
-
-    result
-        .map { animal ->
-            println("데이터 타입 변환")
-            animal.toAnimalDto()
-        }
-        .onSuccess { animal ->
-            println("성공")
-        }
-        .onError { error ->
-            println("실패")
-        }
-}
-
 
 sealed interface ApiResult<out T, out E: ApiError> {
     data class Success<T>(val data: T) : ApiResult<T, Nothing>

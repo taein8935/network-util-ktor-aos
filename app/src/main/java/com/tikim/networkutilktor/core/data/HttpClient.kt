@@ -16,9 +16,11 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.serialization.JsonConvertException
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.coroutines.ensureActive
+import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.coroutineContext
 
@@ -71,6 +73,11 @@ suspend inline fun <reified T> safeCall(
                 ApiResult.Success(response.body<T>())
             } catch (e: NoTransformationFoundException) {
                 ApiResult.Error(ApiError.Remote.SERIALIZATION)
+            } catch (e: JsonConvertException) {
+                ApiResult.Error(ApiError.Remote.SERIALIZATION)
+            } catch (e: Exception) {
+                coroutineContext.ensureActive()
+                ApiResult.Error(ApiError.Remote.UNKNOWN)
             }
         }
         408 -> ApiResult.Error(ApiError.Remote.REQUEST_TIMEOUT)
