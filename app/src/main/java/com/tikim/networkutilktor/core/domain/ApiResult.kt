@@ -1,16 +1,13 @@
-package com.tikim.networkutilktor.core
+package com.tikim.networkutilktor.core.domain
 
 import com.tikim.networkutilktor.Animal
+import com.tikim.networkutilktor.animal.mappers.toAnimalDto
 
 
 data class AnimalDto(val id: String)
-fun Animal.toAnimalDto(): AnimalDto {
-    return AnimalDto(
-        id = ""
-    )
-}
 
-fun fetchAnimal(result: ApiResult<Animal, Int>) {
+
+fun fetchAnimal(result: ApiResult<Animal, ApiError.Remote>) {
 
     val stringList = (1..1000).map {
         it.toString()
@@ -30,12 +27,12 @@ fun fetchAnimal(result: ApiResult<Animal, Int>) {
 }
 
 
-sealed interface ApiResult<out T, out E> {
+sealed interface ApiResult<out T, out E: ApiError> {
     data class Success<T>(val data: T) : ApiResult<T, Nothing>
-    data class Error<E>(val error: E) : ApiResult<Nothing, E>
+    data class Error<E: ApiError>(val error: E) : ApiResult<Nothing, E>
 }
 
-inline fun <T, E, R> ApiResult<T, E>.map(map: (T) -> R): ApiResult<R, E> {
+inline fun <T, E: ApiError, R> ApiResult<T, E>.map(map: (T) -> R): ApiResult<R, E> {
     return when (this) {
         is ApiResult.Error -> {
             val error = this.error
@@ -49,7 +46,7 @@ inline fun <T, E, R> ApiResult<T, E>.map(map: (T) -> R): ApiResult<R, E> {
     }
 }
 
-inline fun <T, E> ApiResult<T, E>.onSuccess(action: (T) -> Unit): ApiResult<T, E> {
+inline fun <T, E: ApiError> ApiResult<T, E>.onSuccess(action: (T) -> Unit): ApiResult<T, E> {
     return when (this) {
         is ApiResult.Error -> {
             this
@@ -62,7 +59,7 @@ inline fun <T, E> ApiResult<T, E>.onSuccess(action: (T) -> Unit): ApiResult<T, E
     }
 }
 
-inline fun <T, E> ApiResult<T, E>.onError(action: (E) -> Unit): ApiResult<T, E> {
+inline fun <T, E: ApiError> ApiResult<T, E>.onError(action: (E) -> Unit): ApiResult<T, E> {
     return when (this) {
         is ApiResult.Error -> {
             val error = this.error
